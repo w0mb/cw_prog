@@ -1,13 +1,5 @@
 #include "../app_lib/python_lib.hpp"
 
-#include <deque>
-#include <iostream>
-#include <stdlib.h>
-#include <time.h>
-#include <windows.h>
-
-using namespace std;
-
 int main()
 {
     srand(static_cast<unsigned>(time(nullptr)));
@@ -16,8 +8,8 @@ int main()
     snake.push_front({FIELD_WIDTH / 2, FIELD_HEIGHT / 2, SNAKE_CHAR});
 
     Character target;
-    target.x = getRandomNumber(1, FIELD_WIDTH - 2);
-    target.y = getRandomNumber(1, FIELD_HEIGHT - 2);
+    target.x = getRandomNumber(2, FIELD_WIDTH - 3);
+    target.y = getRandomNumber(2, FIELD_HEIGHT - 3);
     target.symbol = TARGET_CHAR;
 
     deque<Character> obstacles;
@@ -60,6 +52,7 @@ int main()
         }
 
         int delay = 100 / speedFactor;
+        int snakeLength = 1;
 
         Direction direction = RIGHT;
 
@@ -99,12 +92,11 @@ int main()
 
             if (newHead.x < 1 || newHead.x >= FIELD_WIDTH - 1 || newHead.y < 1
                 || newHead.y >= FIELD_HEIGHT - 1)
-                break;
+                exitGame();
 
             for (const Character& segment : snake) {
-                if (newHead.x == segment.x && newHead.y == segment.y) {
-                    return 0;
-                }
+                if (newHead.x == segment.x && newHead.y == segment.y)
+                    exitGame();
             }
 
             bool collidedWithObstacle = false;
@@ -116,13 +108,13 @@ int main()
             }
 
             if (collidedWithObstacle)
-                break;
+                exitGame();
 
             snake.push_front(newHead);
 
             if (newHead.x == target.x && newHead.y == target.y) {
-                target.x = getRandomNumber(1, FIELD_WIDTH - 2);
-                target.y = getRandomNumber(1, FIELD_HEIGHT - 2);
+                target.x = getRandomNumber(2, FIELD_WIDTH - 3);
+                target.y = getRandomNumber(2, FIELD_HEIGHT - 3);
 
                 bool targetOnSnake = true;
                 while (targetOnSnake) {
@@ -130,14 +122,16 @@ int main()
                     for (const Character& segment : snake) {
                         if (target.x == segment.x && target.y == segment.y) {
                             targetOnSnake = true;
-                            target.x = getRandomNumber(1, FIELD_WIDTH - 2);
-                            target.y = getRandomNumber(1, FIELD_HEIGHT - 2);
+                            target.x = getRandomNumber(2, FIELD_WIDTH - 3);
+                            target.y = getRandomNumber(2, FIELD_HEIGHT - 3);
                             break;
                         }
                     }
                 }
 
                 drawCharacter(target);
+                snakeLength++;
+                displaySnakeLength(snakeLength);
             } else {
                 eraseCharacter(snake.back());
                 snake.pop_back();

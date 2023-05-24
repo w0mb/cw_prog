@@ -1,13 +1,5 @@
 #include "../app_lib/python_lib.hpp"
 
-#include <deque>
-#include <iostream>
-#include <stdlib.h>
-#include <time.h>
-#include <windows.h>
-
-using namespace std;
-
 int getRandomNumber(int min, int max)
 {
     static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);
@@ -112,4 +104,18 @@ void drawBorders()
         drawCharacter({0, y, '#'});
         drawCharacter({FIELD_WIDTH - 1, y, '#'});
     }
+}
+
+void exitGame()
+{
+    clearScreen();
+    cout << "Game Over! Press any key to exit..." << endl;
+    while (!_kbhit()) {} // Wait for a key press
+    exit(0);
+}
+
+void displaySnakeLength(int length)
+{
+    setCursorPosition(0, FIELD_HEIGHT);
+    cout << "Snake Length: " << length << endl;
 }

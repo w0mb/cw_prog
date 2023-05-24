@@ -1,5 +1,14 @@
 #pragma once
 
+using namespace std;
+
+#include <deque>
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
+#include <windows.h>
+#include <conio.h>
+
 const int SCREEN_WIDTH = 80;
 const int SCREEN_HEIGHT = 25;
 const int FIELD_WIDTH = 70;
@@ -33,3 +42,7 @@ void showMainMenu();
 void showSettingsMenu(int& speedFactor);
 
 void drawBorders();
+
+void exitGame();
+
+void displaySnakeLength(int length);
