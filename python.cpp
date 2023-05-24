@@ -63,6 +63,57 @@ void moveCharacter(Character &character, int dx, int dy)
     drawCharacter(character);
 }
 
+void clearScreen()
+{
+    system("cls");
+}
+
+void showMenu()
+{
+    clearScreen();
+    cout << "Hello, it's the Python game.\nChoose an action:\n";
+    cout << "1) Start game\n";
+    cout << "2) Settings\n";
+    cout << "3) Exit\n";
+}
+
+void showSettingsMenu(int &speedFactor)
+{
+    clearScreen();
+    cout << "Settings:\n";
+    cout << "1) + Speed\n";
+    cout << "2) +++ Speed\n";
+    cout << "3) - Speed\n";
+    cout << "4) --- Speed\n";
+    cout << "5) Back\n";
+
+    int settingChoice;
+    cin >> settingChoice;
+
+    switch (settingChoice)
+    {
+    case 1:
+        speedFactor = 1;
+        break;
+    case 2:
+        speedFactor = 2;
+        break;
+    case 3:
+        speedFactor = -1;
+        break;
+    case 4:
+        speedFactor = -2;
+        break;
+    case 5:
+        return;  // Go back to the previous menu
+    default:
+        cout << "Invalid choice.\n";
+        return;  // Go back to the settings menu
+    }
+
+    clearScreen();
+}
+
 int main()
 {
     srand(static_cast<unsigned>(time(nullptr)));
@@ -78,7 +129,6 @@ int main()
     drawCharacter(snake.front());
     drawCharacter(target);
 
-    // Генерация преград по краям экрана
     deque<Character> obstacles;
     for (int x = 0; x < FIELD_WIDTH; ++x)
     {
@@ -95,94 +145,123 @@ int main()
         drawCharacter(obstacles.back());
     }
 
-    Direction direction = RIGHT;
+    int speedFactor = 1;
 
     while (true)
     {
-        if (GetAsyncKeyState('W') & 0x8000)
+        showMenu();
+        int choice;
+        cin >> choice;
+
+        if (choice == 1)
         {
-            if (direction != DOWN)
-                direction = UP;
+            showSettingsMenu(speedFactor);
         }
-        else if (GetAsyncKeyState('S') & 0x8000)
+        else if (choice == 2)
         {
-            if (direction != UP)
-                direction = DOWN;
+            clearScreen();
+            cout << "Goodbye!\n";
+            return 0;
         }
-        else if (GetAsyncKeyState('A') & 0x8000)
+        else if (choice == 3)
         {
-            if (direction != RIGHT)
-                direction = LEFT;
-        }
-        else if (GetAsyncKeyState('D') & 0x8000)
-        {
-            if (direction != LEFT)
-                direction = RIGHT;
-        }
-        int dx = 0, dy = 0;
-        switch (direction)
-        {
-        case UP:
-            dy = -1;
-            break;
-        case DOWN:
-            dy = 1;
-            break;
-        case LEFT:
-            dx = -1;
-            break;
-        case RIGHT:
-            dx = 1;
-            break;
+            clearScreen();
+            cout << "Invalid choice.\n";
+            continue;
         }
 
-        Character newHead = snake.front();
-        moveCharacter(newHead, dx, dy);
+        int delay = 100 / speedFactor;
 
-        if (newHead.x < 0 || newHead.x >= FIELD_WIDTH || newHead.y < 0 || newHead.y >= FIELD_HEIGHT)
-            break;
+        Direction direction = RIGHT;
 
-        for (const Character &segment : snake)
+        while (true)
         {
-            if (newHead.x == segment.x && newHead.y == segment.y)
+            if (GetAsyncKeyState('W') & 0x8000)
             {
-                return 0;
+                if (direction != DOWN)
+                    direction = UP;
             }
-        }
-
-        bool collidedWithObstacle = false;
-        for (const Character &obstacle : obstacles)
-        {
-            if (newHead.x == obstacle.x && newHead.y == obstacle.y)
+            else if (GetAsyncKeyState('S') & 0x8000)
             {
-                collidedWithObstacle = true;
+                if (direction != UP)
+                    direction = DOWN;
+            }
+            else if (GetAsyncKeyState('A') & 0x8000)
+            {
+                if (direction != RIGHT)
+                    direction = LEFT;
+            }
+            else if (GetAsyncKeyState('D') & 0x8000)
+            {
+                if (direction != LEFT)
+                    direction = RIGHT;
+            }
+
+            int dx = 0, dy = 0;
+            switch (direction)
+            {
+            case UP:
+                dy = -1;
+                break;
+            case DOWN:
+                dy = 1;
+                break;
+            case LEFT:
+                dx = -1;
+                break;
+            case RIGHT:
+                dx = 1;
                 break;
             }
+
+            Character newHead = snake.front();
+            moveCharacter(newHead, dx, dy);
+
+            if (newHead.x < 0 || newHead.x >= FIELD_WIDTH || newHead.y < 0 || newHead.y >= FIELD_HEIGHT)
+                break;
+
+            for (const Character &segment : snake)
+            {
+                if (newHead.x == segment.x && newHead.y == segment.y)
+                {
+                    return 0;
+                }
+            }
+
+            bool collidedWithObstacle = false;
+            for (const Character &obstacle : obstacles)
+            {
+                if (newHead.x == obstacle.x && newHead.y == obstacle.y)
+                {
+                    collidedWithObstacle = true;
+                    break;
+                }
+            }
+
+            if (collidedWithObstacle)
+                break;
+
+            snake.push_front(newHead);
+
+            if (newHead.x == target.x && newHead.y == target.y)
+            {
+                target.x = getRandomNumber(0, FIELD_WIDTH - 1);
+                target.y = getRandomNumber(0, FIELD_HEIGHT - 1);
+                drawCharacter(target);
+            }
+            else
+            {
+                eraseCharacter(snake.back());
+                snake.pop_back();
+            }
+
+            for (const Character &segment : snake)
+            {
+                drawCharacter(segment);
+            }
+
+            Sleep(delay);
         }
-
-        if (collidedWithObstacle)
-            break;
-
-        snake.push_front(newHead);
-
-        if (newHead.x == target.x && newHead.y == target.y)
-        {
-            target.x = getRandomNumber(0, FIELD_WIDTH - 1);
-            target.y = getRandomNumber(0, FIELD_HEIGHT - 1);
-            drawCharacter(target);
-        }
-        else
-        {
-            eraseCharacter(snake.back());
-            snake.pop_back();
-        }
-
-        for (const Character &segment : snake)
-        {
-            drawCharacter(segment);
-        }
-
-        Sleep(100);
     }
 
     return 0;
