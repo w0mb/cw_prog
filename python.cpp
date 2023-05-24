@@ -9,9 +9,10 @@ using namespace std;
 const int SCREEN_WIDTH = 80;
 const int SCREEN_HEIGHT = 25;
 const int FIELD_WIDTH = 70;
-const int FIELD_HEIGHT = 50;
+const int FIELD_HEIGHT = 20;
 const char TARGET_CHAR = 'X';
 const char OBSTACLE_CHAR = '#';
+const char SNAKE_CHAR = '*';
 
 struct Character
 {
@@ -68,24 +69,22 @@ void clearScreen()
     system("cls");
 }
 
-void showMenu()
+void showMainMenu()
 {
     clearScreen();
-    cout << "Hello, it's the Python game.\nChoose an action:\n";
-    cout << "1) Start game\n";
-    cout << "2) Settings\n";
-    cout << "3) Exit\n";
+    cout << "Snake Game\n";
+    cout << "1) Start the game\n";
+    cout << "2) Exit\n";
 }
 
 void showSettingsMenu(int &speedFactor)
 {
     clearScreen();
-    cout << "Settings:\n";
-    cout << "1) + Speed\n";
-    cout << "2) +++ Speed\n";
-    cout << "3) - Speed\n";
-    cout << "4) --- Speed\n";
-    cout << "5) Back\n";
+    cout << "Difficulty Settings:\n";
+    cout << "1) Easy\n";
+    cout << "2) Normal\n";
+    cout << "3) Hard\n";
+    cout << "4) Back\n";
 
     int settingChoice;
     cin >> settingChoice;
@@ -99,19 +98,45 @@ void showSettingsMenu(int &speedFactor)
         speedFactor = 2;
         break;
     case 3:
-        speedFactor = -1;
+        speedFactor = 3;
         break;
     case 4:
-        speedFactor = -2;
-        break;
-    case 5:
-        return;  // Go back to the previous menu
+        return; // Go back to the previous menu
     default:
         cout << "Invalid choice.\n";
-        return;  // Go back to the settings menu
+        return; // Go back to the settings menu
     }
 
     clearScreen();
+    cout << "Difficulty set to: ";
+    if (speedFactor == 1)
+        cout << "Easy\n";
+    else if (speedFactor == 2)
+        cout << "Normal\n";
+    else if (speedFactor == 3)
+        cout << "Hard\n";
+
+    cout << "Press Spacebar to continue...";
+    while (true)
+    {
+        if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+            break;
+    }
+}
+
+void drawBorders()
+{
+    for (int x = 0; x < FIELD_WIDTH; ++x)
+    {
+        drawCharacter({ x, 0, '#' });
+        drawCharacter({ x, FIELD_HEIGHT - 1, '#' });
+    }
+
+    for (int y = 1; y < FIELD_HEIGHT - 1; ++y)
+    {
+        drawCharacter({ 0, y, '#' });
+        drawCharacter({ FIELD_WIDTH - 1, y, '#' });
+    }
 }
 
 int main()
@@ -119,51 +144,56 @@ int main()
     srand(static_cast<unsigned>(time(nullptr)));
 
     deque<Character> snake;
-    snake.push_front({FIELD_WIDTH / 2, FIELD_HEIGHT / 2, '*'});
+    snake.push_front({ FIELD_WIDTH / 2, FIELD_HEIGHT / 2, SNAKE_CHAR });
 
     Character target;
-    target.x = getRandomNumber(0, FIELD_WIDTH - 1);
-    target.y = getRandomNumber(0, FIELD_HEIGHT - 1);
+    target.x = getRandomNumber(1, FIELD_WIDTH - 2);
+    target.y = getRandomNumber(1, FIELD_HEIGHT - 2);
     target.symbol = TARGET_CHAR;
-
-    drawCharacter(snake.front());
-    drawCharacter(target);
 
     deque<Character> obstacles;
     for (int x = 0; x < FIELD_WIDTH; ++x)
     {
-        obstacles.push_back({x, 0, OBSTACLE_CHAR});
-        drawCharacter(obstacles.back());
-        obstacles.push_back({x, FIELD_HEIGHT - 1, OBSTACLE_CHAR});
-        drawCharacter(obstacles.back());
+        obstacles.push_back({ x, 0, OBSTACLE_CHAR });
+        obstacles.push_back({ x, FIELD_HEIGHT - 1, OBSTACLE_CHAR });
     }
     for (int y = 1; y < FIELD_HEIGHT - 1; ++y)
     {
-        obstacles.push_back({0, y, OBSTACLE_CHAR});
-        drawCharacter(obstacles.back());
-        obstacles.push_back({FIELD_WIDTH - 1, y, OBSTACLE_CHAR});
-        drawCharacter(obstacles.back());
+        obstacles.push_back({ 0, y, OBSTACLE_CHAR });
+        obstacles.push_back({ FIELD_WIDTH - 1, y, OBSTACLE_CHAR });
     }
 
     int speedFactor = 1;
 
     while (true)
     {
-        showMenu();
+        showMainMenu();
         int choice;
         cin >> choice;
 
         if (choice == 1)
         {
             showSettingsMenu(speedFactor);
+            clearScreen();
+            drawBorders();
+            drawCharacter(target);
+            for (const Character &obstacle : obstacles)
+            {
+                drawCharacter(obstacle);
+            }
+            for (const Character &segment : snake)
+            {
+                drawCharacter(segment);
+            }
+            Sleep(1000); // Delay for better visualization
         }
         else if (choice == 2)
         {
             clearScreen();
             cout << "Goodbye!\n";
-            return 0;
+            break;
         }
-        else if (choice == 3)
+        else
         {
             clearScreen();
             cout << "Invalid choice.\n";
@@ -217,7 +247,7 @@ int main()
             Character newHead = snake.front();
             moveCharacter(newHead, dx, dy);
 
-            if (newHead.x < 0 || newHead.x >= FIELD_WIDTH || newHead.y < 0 || newHead.y >= FIELD_HEIGHT)
+            if (newHead.x < 1 || newHead.x >= FIELD_WIDTH - 1 || newHead.y < 1 || newHead.y >= FIELD_HEIGHT - 1)
                 break;
 
             for (const Character &segment : snake)
@@ -245,8 +275,25 @@ int main()
 
             if (newHead.x == target.x && newHead.y == target.y)
             {
-                target.x = getRandomNumber(0, FIELD_WIDTH - 1);
-                target.y = getRandomNumber(0, FIELD_HEIGHT - 1);
+                target.x = getRandomNumber(1, FIELD_WIDTH - 2);
+                target.y = getRandomNumber(1, FIELD_HEIGHT - 2);
+
+                bool targetOnSnake = true;
+                while (targetOnSnake)
+                {
+                    targetOnSnake = false;
+                    for (const Character &segment : snake)
+                    {
+                        if (target.x == segment.x && target.y == segment.y)
+                        {
+                            targetOnSnake = true;
+                            target.x = getRandomNumber(1, FIELD_WIDTH - 2);
+                            target.y = getRandomNumber(1, FIELD_HEIGHT - 2);
+                            break;
+                        }
+                    }
+                }
+
                 drawCharacter(target);
             }
             else
@@ -255,6 +302,7 @@ int main()
                 snake.pop_back();
             }
 
+            // Redraw the entire snake
             for (const Character &segment : snake)
             {
                 drawCharacter(segment);
