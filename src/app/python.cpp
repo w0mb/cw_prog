@@ -40,7 +40,7 @@ int main()
             for (const Character& segment : snake) {
                 drawCharacter(segment);
             }
-            Sleep(1000); // Delay for better visualization
+            Sleep(1250); // Delay for better visualization
         } else if (choice == 2) {
             clearScreen();
             cout << "Goodbye!\n";
@@ -57,6 +57,16 @@ int main()
         Direction direction = RIGHT;
 
         while (true) {
+            if (_kbhit()) {
+                char ch = _getch();
+                if (ch == 27) { // ESC key
+                    clearScreen();
+                    cout << "Game ended. Press any key to exit.\n";
+                    _getch();
+                    exit(0);
+                }
+            }
+
             if (GetAsyncKeyState('W') & 0x8000) {
                 if (direction != DOWN)
                     direction = UP;

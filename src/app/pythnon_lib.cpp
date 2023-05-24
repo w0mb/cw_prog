@@ -109,8 +109,8 @@ void drawBorders()
 void exitGame()
 {
     clearScreen();
-    cout << "Game Over! Press any key to exit..." << endl;
-    while (!_kbhit()) {} // Wait for a key press
+    cout << "Game ended. Press any key to exit." << endl;
+    _getch();
     exit(0);
 }
 
@@ -118,4 +118,9 @@ void displaySnakeLength(int length)
 {
     setCursorPosition(0, FIELD_HEIGHT);
     cout << "Snake Length: " << length << endl;
+}
+
+bool isKeyPressed(int key)
+{
+    return GetAsyncKeyState(key) & 0x8000;
 }

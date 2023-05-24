@@ -46,3 +46,5 @@ void drawBorders();
 void exitGame();
 
 void displaySnakeLength(int length);
+
+bool isKeyPressed(int key);
